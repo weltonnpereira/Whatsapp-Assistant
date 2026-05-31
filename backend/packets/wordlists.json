@@ -1,0 +1,9 @@
+{
+  "chat": {
+    "schedule": ["agendar", "marcar", "consulta", "horário", "horario"],
+    "price": ["valor", "preço", "preco", "quanto custa"],
+    "human": ["atendente", "humano", "pessoa", "secretária", "secretaria"],
+    "reschedule": ["cancelar", "desmarcar", "remarcar"],
+    "reset": ["reiniciar", "começar de novo", "comecar de novo", "novo agendamento", "nova consulta"]
+  }
+}

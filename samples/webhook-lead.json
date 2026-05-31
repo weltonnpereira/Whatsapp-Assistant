@@ -1,0 +1,10 @@
+{
+  "lead": {
+    "phone": "5511999999999",
+    "name": "Maria Oliveira",
+    "speciality": "dermatologista",
+    "period": "tarde",
+    "selected_slot": "Quarta 16:00",
+    "status": "scheduled"
+  }
+}
