@@ -61,30 +61,6 @@ class Auxiliary():
         }
 
 class Chat(Auxiliary):
-    _JSON_PATH = os.path.join("backend", "packets", "wordlists.json")
-    _WORDLISTS = None
-
-    @classmethod
-    def GetWordlists(cls) -> dict:
-        if cls._WORDLISTS is None:
-            try:
-                with open(cls._JSON_PATH, "r", encoding="utf-8") as file:
-                    cls._WORDLISTS = json.load(file).get("chat", {})
-            except Exception as e:
-                print(f"Error loading wordlists: {e}")
-                cls._WORDLISTS = {}
-        return cls._WORDLISTS
-
-    @classmethod
-    def DetectIntent(cls, text: str) -> str:
-        text_lower = text.lower()
-
-        for intent, keywords in cls.GetWordlists().items():
-            if any(word in text_lower for word in keywords):
-                return intent
-            
-        return "unknown"
-
     @staticmethod
     def FindAvailableSlots(speciality: str, period: str) -> list[str]:
         speciality_key = speciality.lower().strip()
@@ -98,9 +74,9 @@ class Chat(Auxiliary):
         return speciality_schedule.get(period_key, [])
 
     @classmethod
-    def BuildRobotReply(cls, conversations: dict, phone: str, text: str) -> dict:
+    def BuildRobotReply(cls, conversations: dict, phone: str, text: str, analysis: dict) -> dict:
         conversation = conversations.get(phone, {"step": "new"})
-        intent = cls.DetectIntent(text)
+        intent = analysis.get("intent", "unknown")
 
         if conversation["step"] == "new":
             if intent == "schedule":

@@ -1,8 +1,10 @@
+from uuid import uuid4
 from fastapi import FastAPI, Request, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 
 from backend.functions.chat import Chat, Auxiliary
 from backend.functions.api import sender
+from backend.functions.interpreter import HybridInterpreter 
 from backend.settings import settings
 
 from backend.models import ChatModel
@@ -31,9 +33,12 @@ async def receive_webhook(request: Request):
             return {"status": "ok", "message": "none message receive"}
         
         message: dict = messages[0]
-        message_id = message.get("id")
+        message_id = message.get("id", None)
         phone = message["from"]
         text = message.get("text", {}).get("body", "")
+
+        if settings.WHATSAPP_MODE == "Sandbox":
+            message_id = f"sandbox.{uuid4()}"
 
         if message_id and ChatModel.HasProcessedMessage(message_id):
             return {
@@ -45,10 +50,12 @@ async def receive_webhook(request: Request):
         if message_id:
             ChatModel.MarkMessageAsProcessed(message_id)
 
-        chat_result = Chat.BuildRobotReply(ChatModel.GetConversations(), phone, text)
+        conversation_before = ChatModel.GetConversations().get(phone, {})
+        analysis = await HybridInterpreter.Interpret(text, conversation_before)
+        chat_result = Chat.BuildRobotReply(ChatModel.GetConversations(), phone, text, analysis)
         reply = chat_result["reply"]
         action = chat_result["action"]
-        send_result = sender.SendTextMessage(phone, reply)
+        send_result = await sender.SendTextMessage(phone, reply)
 
         conversation = ChatModel.GetConversations().get(phone, {})
 
@@ -67,6 +74,7 @@ async def receive_webhook(request: Request):
             "from": phone,
             "text": text,
             "reply": reply,
+            "analysis": analysis,
             "action": action,
             "lead": lead,
             "send_result": send_result
